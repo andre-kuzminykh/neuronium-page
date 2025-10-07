@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuronium - AI Super Agent</title>
+    
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- JetBrains Mono Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Part 1: Base Architecture & CSS Variables --- */
+        :root {
+            --brand-purple: #8854F3;
+            --brand-orange: #F97316;
+            
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111113;
+            
+            --text-primary: #E5E7EB;
+            --text-secondary: #9CA3AF;
+
+            --border-color: #333333;
+        }
+
+        /* Set body height to enable scrolling (2 sections) */
+        body {
+            height: 200vh; 
+            background-color: var(--bg-primary);
+            overscroll-behavior: none; /* Disables "pull-to-refresh" on mobile */
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        /* Sticky container to hold the viewport */
+        #page-container {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden; /* Hide anything that goes beyond the viewport */
+        }
+
+        /* Sections are stacked on top of each other */
+        .content-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            z-index: 1;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem 2rem; /* Added padding-top for header */
+            overflow-y: auto; /* Enable scrolling within long sections */
+        }
+
+        /* The active section is visible and on top */
+        .content-section.is-visible {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        /* --- Part 2: Animations & Effects --- */
+
+        /* 2.1 Animated Gradient Button */
+        .main-cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            background-color: white;
+            color: #0a0a0a;
+            transform: scale(1);
+            transition: color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .main-cta-button:hover {
+            color: white;
+            transform: scale(1.05);
+            background-image: linear-gradient(to right, var(--brand-orange), var(--brand-purple), var(--brand-orange));
+            background-size: 200% auto;
+            animation: gradient-flow 4s linear infinite;
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4), 
+                        0 8px 10px -6px rgba(136, 84, 243, 0.4);
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* 2.2 Header and Nav links */
+        .header {
+            background-color: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: background-color 0.3s ease;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+            color: var(--text-secondary);
+        }
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--brand-purple);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* 2.3 Noise / Grain Effect */
+        body::after {
+            content: "";
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: -10;
+            pointer-events: none;
+            background-image: url('data:image/svg+xml,<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><filter id="a"><feTurbulence baseFrequency="0.65" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23a)"/></svg>');
+            background-size: 256px 256px;
+            opacity: 0.05;
+            animation: grain-animation 8s alternate linear infinite;
+        }
+
+        @keyframes grain-animation {
+            0%   { transform: translate(0, 0); }
+            25%  { transform: translate(-3px, 4px); }
+            50%  { transform: translate(4px, -3px); }
+            75%  { transform: translate(-2px, -2px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* 2.4 Blob Animation */
+        .blob {
+            position: fixed;
+            z-index: -1;
+            opacity: 0.7;
+            transform: scale(1) translateZ(0);
+            transition: opacity 0.4s ease;
+            will-change: transform, opacity;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            backface-visibility: hidden;
+            image-rendering: high-quality;
+        }
+
+        .blob-purple {  
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='1600' viewBox='0 0 500 500'%3e%3cdefs%3e%3cradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3e%3cstop offset='0%25' stop-color='%238854F3' stop-opacity='1'/%3e%3cstop offset='100%25' stop-color='%238854F3' stop-opacity='0'/%3e%3c/radialGradient%3e%3cfilter id='blob_filter' x='-50%25' y='-50%25' width='200%25' height='200%25'%3e%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3' result='noise'/%3e%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='50'/%3e%3CfeGaussianBlur stdDeviation='70'/%3e%3C/filter%3e%3c/defs%3e%3ccircle cx='250' cy='250' r='150' fill='url(%23grad)' filter='url(%23blob_filter)'/%3e%3c/svg%3e");
+        }
+        .blob-orange {  
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='1600' viewBox='0 0 500 500'%3e%3cdefs%3e%3cradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3e%3cstop offset='0%25' stop-color='%23F97316' stop-opacity='1'/%3e%3cstop offset='100%25' stop-color='%23F97316' stop-opacity='0'/%3e%3c/radialGradient%3e%3cfilter id='blob_filter' x='-50%25' y='-50%25' width='200%25' height='200%25'%3e%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3' result='noise'/%3e%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='50'/%3e%3CfeGaussianBlur stdDeviation='70'/%3e%3C/filter%3e%3c/defs%3e%3ccircle cx='250' cy='250' r='150' fill='url(%23grad)' filter='url(%23blob_filter)'/%3e%3c/svg%3e");
+        }
+
+        /* 2.5 Scroll Down Indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            animation: fade-in 1s 1.5s forwards;
+        }
+        
+        @keyframes fade-in {
+            to { opacity: 1; }
+        }
+
+        .scroll-indicator .mouse {
+            width: 24px;
+            height: 40px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 12px;
+            position: relative;
+        }
+        .scroll-indicator .scroller {
+            width: 4px;
+            height: 8px;
+            background: var(--text-secondary);
+            border-radius: 2px;
+            position: absolute;
+            left: 50%;
+            top: 6px;
+            transform: translateX(-50%);
+            animation: scroll-anim 2s infinite;
+        }
+        
+        @keyframes scroll-anim {
+            0% { top: 6px; opacity: 1;}
+            100% { top: 20px; opacity: 0; }
+        }
+
+    </style>
+</head>
+<body class="bg-[var(--bg-primary)]">
+
+    <header class="header fixed top-0 left-0 w-full z-50 border-b border-white/10">
+        <div class="container mx-auto flex justify-between items-center p-3">
+            <!-- Logo -->
+            <a href="#" data-target-section-index="0" class="nav-logo">
+                <span class="text-5xl font-bold text-white hover:opacity-80 transition-opacity" style="font-family: Arial, sans-serif;">Nr</span>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-10 text-sm font-medium">
+                <a href="#" data-target-section-index="1" class="nav-link">Use Cases</a>
+                <a href="#" class="nav-link">Features</a>
+                <a href="#" class="nav-link">Pricing</a>
+                <a href="#" class="nav-link">Blog</a>
+            </nav>
+
+            <!-- CTA Button -->
+            <a href="#" class="hidden md:inline-flex main-cta-button cta-with-blob-effect !text-sm !py-2.5 !px-6">
+                Start
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </a>
+
+            <!-- Mobile Menu Button -->
+            <button id="menu-toggle" class="md:hidden z-[101]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Panel -->
+    <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-[var(--bg-primary)] z-[100] flex flex-col items-center justify-center">
+         <nav class="flex flex-col items-center space-y-8 text-xl font-medium">
+            <a href="#" data-target-section-index="1" class="nav-link">Use Cases</a>
+            <a href="#" class="nav-link">Features</a>
+            <a href="#" class="nav-link">Pricing</a>
+            <a href="#" class="nav-link">Blog</a>
+            <a href="#" class="main-cta-button cta-with-blob-effect mt-8">
+                Start
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </a>
+        </nav>
+    </div>
+
+
+    <div id="page-container">
+        <!-- Animated Blobs -->
+        <div id="blob1" class="blob blob-purple w-[50rem] h-[50rem] md:w-[65rem] md:h-[65rem]"></div>
+        <div id="blob2" class="blob blob-orange w-[50rem] h-[50rem] md:w-[65rem] md:h-[65rem]"></div>
+
+        <div id="content-wrapper" class="relative w-full h-full">
+            <!-- ======================= -->
+            <!-- SECTION 1: HERO         -->
+            <!-- ======================= -->
+            <section id="hero-section" class="content-section text-center is-visible">
+                <div class="z-10 flex flex-col items-center">
+                    <h1 class="text-6xl md:text-9xl font-extrabold text-white tracking-wider">NEURONIUM</h1>
+                    <h2 class="text-3xl md:text-6xl font-bold mt-2 leading-tight">
+                        <span style="color: var(--brand-purple);">AI</span> SUPER <span style="color: var(--brand-orange);">AGENT</span>
+                    </h2>
+                    <a href="#" class="main-cta-button cta-with-blob-effect mt-16">
+                        Start
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </a>
+                </div>
+
+                <div class="scroll-indicator">
+                    <div class="mouse"><div class="scroller"></div></div>
+                    <span class="text-sm">Scroll Down</span>
+                </div>
+            </section>
+
+            <!-- ======================= -->
+            <!-- SECTION 2: USE CASES    -->
+            <!-- ======================= -->
+            <section id="about-section" class="content-section">
+                <div class="text-center max-w-7xl mx-auto">
+                    <h2 class="text-4xl md:text-6xl font-bold mb-4">
+                        Democratizing <span style="color: var(--brand-purple);">AI</span>
+                    </h2>
+                    <p class="text-lg md:text-xl text-[var(--text-secondary)] mb-12">
+                        Artificial Intelligence for Everyone.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Card 1: Personal -->
+                        <div class="rounded-2xl border p-8 shadow-lg text-left flex flex-col" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                            <h3 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                Personal
+                            </h3>
+                            <p class="text-[var(--text-secondary)] mb-6 flex-grow">
+                                Your personal assistant for studying, creativity, and daily tasks. Optimize your life with AI.
+                            </p>
+                            <a href="#" class="main-cta-button cta-with-blob-effect self-end !text-base !py-3 !px-6">
+                                Learn more
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </a>
+                        </div>
+                        
+                        <!-- Card 2: Business -->
+                        <div class="rounded-2xl border p-8 shadow-lg text-left flex flex-col" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                            <h3 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                Business
+                            </h3>
+                            <p class="text-[var(--text-secondary)] mb-6 flex-grow">
+                                Scalable solutions for process automation, data analysis, and boosting your company's competitive edge.
+                            </p>
+                            <a href="#" class="main-cta-button cta-with-blob-effect self-end !text-base !py-3 !px-6">
+                                Learn more
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+
+            // === Global Variables ===
+            const sections = document.querySelectorAll('.content-section');
+            const totalSections = sections.length;
+            let currentSectionIndex = 0;
+            let isTransitioning = false;
+            const transitionDuration = 1200;
+            
+            // Blobs
+            const blob1 = document.getElementById('blob1');
+            const blob2 = document.getElementById('blob2');
+            let wanderTime = 0;
+            let blob1State = { x: window.innerWidth * 0.45, y: window.innerHeight * 0.4, scale: 1.0 };
+            let blob2State = { x: window.innerWidth * 0.55, y: window.innerHeight * 0.5, scale: 1.0 };
+            let blobTarget = null; 
+
+            // Menu
+            const menuToggle = document.getElementById('menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            // --- Navigation Logic ---
+            const updateActiveSection = (newIndex) => {
+                if (newIndex < 0 || newIndex >= totalSections || newIndex === currentSectionIndex) {
+                    isTransitioning = false;
+                    return;
+                }
+                
+                if (sections[currentSectionIndex]) {
+                    sections[currentSectionIndex].classList.remove('is-visible');
+                }
+
+                if (sections[newIndex]) {
+                    sections[newIndex].classList.add('is-visible');
+                     requestAnimationFrame(() => {
+                        sections[newIndex].scrollTop = 0;
+                     });
+                }
+                
+                currentSectionIndex = newIndex;
+                window.scrollTo({ top: newIndex * window.innerHeight, behavior: 'auto' });
+
+                setTimeout(() => {
+                    isTransitioning = false;
+                }, transitionDuration); 
+            };
+            
+            const navigateToSection = (targetIndex) => {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                updateActiveSection(targetIndex);
+            };
+
+            // --- Event Handlers ---
+            const wheelHandler = (e) => {
+                if (isTransitioning) { e.preventDefault(); return; }
+                const currentSection = sections[currentSectionIndex];
+                if (!currentSection) return;
+                const isScrollable = currentSection.scrollHeight > currentSection.clientHeight;
+                const isScrollingDown = e.deltaY > 0;
+                const scrollBuffer = 5;
+
+                if (isScrollable) {
+                    if (isScrollingDown && currentSection.scrollTop + currentSection.clientHeight < currentSection.scrollHeight - scrollBuffer) return;
+                    if (!isScrollingDown && currentSection.scrollTop > scrollBuffer) return;
+                }
+
+                e.preventDefault();
+                if (isScrollingDown) navigateToSection(currentSectionIndex + 1);
+                else navigateToSection(currentSectionIndex - 1);
+            };
+            
+            // --- Touch Handlers ---
+            let touchStartY = 0;
+            const touchStartHandler = (e) => { if (!isTransitioning) touchStartY = e.touches[0].clientY; };
+            const touchEndHandler = (e) => {
+                if (isTransitioning) return;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaY = touchStartY - touchEndY;
+                if (Math.abs(deltaY) < 50) return;
+                
+                const currentSection = sections[currentSectionIndex];
+                if (!currentSection) return;
+
+                const isScrollable = currentSection.scrollHeight > currentSection.clientHeight;
+                const isSwipingUp = deltaY > 0;
+                const scrollBuffer = 5;
+
+                if (isScrollable) {
+                    if (isSwipingUp && currentSection.scrollTop + currentSection.clientHeight < currentSection.scrollHeight - scrollBuffer) return;
+                    if (!isSwipingUp && currentSection.scrollTop > scrollBuffer) return;
+                }
+                
+                if (isSwipingUp) navigateToSection(currentSectionIndex + 1);
+                else navigateToSection(currentSectionIndex - 1);
+            };
+            
+            window.addEventListener('wheel', wheelHandler, { passive: false });
+            window.addEventListener('touchstart', touchStartHandler, { passive: true });
+            window.addEventListener('touchend', touchEndHandler, { passive: true });
+
+            // --- Nav Link Clicks ---
+            const navLinks = document.querySelectorAll('a[data-target-section-index]');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetIndex = parseInt(link.dataset.targetSectionIndex, 10);
+                    navigateToSection(targetIndex);
+                    // If mobile menu is open, close it
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            // --- Mobile Menu Toggle ---
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+
+            // --- Blob Animation Logic ---
+            function animateBlobs() {
+                let targetX1, targetY1, targetScale1;
+                let targetX2, targetY2, targetScale2;
+                const blobWidth = blob1.offsetWidth;
+                const blobHeight = blob1.offsetHeight;
+
+                if (blobTarget) {
+                    const rect = blobTarget.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    targetX1 = centerX - blobWidth / 2;
+                    targetY1 = centerY - blobHeight / 2;
+                    targetScale1 = 0;
+                    targetX2 = centerX - blobWidth / 2;
+                    targetY2 = centerY - blobHeight / 2;
+                    targetScale2 = 0;
+                } else {
+                    wanderTime += 0.002;
+                    const centerX = window.innerWidth / 2;
+                    const centerY = window.innerHeight / 2;
+                    const wanderRadiusX = Math.min(centerX, centerY) * 0.45;
+                    const wanderRadiusY = Math.min(centerX, centerY) * 0.35;
+                    targetX1 = centerX + wanderRadiusX * Math.cos(wanderTime) - blobWidth / 2;
+                    targetY1 = centerY + wanderRadiusY * Math.sin(wanderTime * 1.5) - blobHeight / 2;
+                    targetScale1 = 1.0;
+                    const phaseOffset = 1.5;
+                    targetX2 = centerX + wanderRadiusX * Math.cos(wanderTime - phaseOffset) - blobWidth / 2;
+                    targetY2 = centerY + wanderRadiusY * Math.sin((wanderTime - phaseOffset) * 1.5) - blobHeight / 2;
+                    targetScale2 = 1.0;
+                }
+                
+                const smoothingFactor = 0.08;
+                blob1State.x += (targetX1 - blob1State.x) * smoothingFactor;
+                blob1State.y += (targetY1 - blob1State.y) * smoothingFactor;
+                blob1State.scale += (targetScale1 - blob1State.scale) * smoothingFactor;
+                blob2State.x += (targetX2 - blob2State.x) * smoothingFactor;
+                blob2State.y += (targetY2 - blob2State.y) * smoothingFactor;
+                blob2State.scale += (targetScale2 - blob2State.scale) * smoothingFactor;
+                
+                blob1.style.transform = `translate3d(${blob1State.x}px, ${blob1State.y}px, 0) scale(${blob1State.scale})`;
+                blob2.style.transform = `translate3d(${blob2State.x}px, ${blob2State.y}px, 0) scale(${blob2State.scale})`;
+                
+                requestAnimationFrame(animateBlobs);
+            }
+
+            // --- Blob Interaction Logic ---
+            const ctaButtonsWithEffect = document.querySelectorAll('.cta-with-blob-effect');
+            ctaButtonsWithEffect.forEach(button => {
+                button.addEventListener('mouseenter', () => { blobTarget = button; });
+                button.addEventListener('mouseleave', () => { blobTarget = null; });
+            });
+
+            // --- Initialization ---
+            animateBlobs();
+        });
+    </script>
+</body>
+</html>
