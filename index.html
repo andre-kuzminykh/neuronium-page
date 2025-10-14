@@ -26,11 +26,15 @@
             --text-secondary: #9CA3AF;
 
             --border-color: #333333;
+
+            /* This variable will be set by JavaScript */
+            --header-h: 70px; /* Fallback value */
         }
 
-        /* Set body height to enable scrolling (2 sections) */
+        /* Set body height to enable scrolling (4 sections) */
         body {
-            height: 200vh; 
+            /* THE FIX: Use dynamic viewport height unit */
+            height: calc(100dvh * 4); 
             background-color: var(--bg-primary);
             overscroll-behavior: none; /* Disables "pull-to-refresh" on mobile */
             font-family: 'JetBrains Mono', monospace;
@@ -41,7 +45,8 @@
         #page-container {
             position: sticky;
             top: 0;
-            height: 100vh;
+            /* THE FIX: Use dynamic viewport height unit */
+            height: 100dvh;
             width: 100%;
             overflow: hidden; /* Hide anything that goes beyond the viewport */
         }
@@ -55,13 +60,22 @@
             height: 100%;
             opacity: 0;
             z-index: 1;
-            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 6rem 2rem 2rem; /* Added padding-top for header */
+            /* THE FIX: Use the dynamic header height for padding */
+            padding: var(--header-h) 1rem 5rem;
             overflow-y: auto; /* Enable scrolling within long sections */
+        }
+
+        .content-section > .content-body {
+             width: 100%;
+             flex-grow: 1;
+             display: flex;
+             flex-direction: column;
+             justify-content: center;
+             align-items: center;
         }
 
         /* The active section is visible and on top */
@@ -226,7 +240,7 @@
 </head>
 <body class="bg-[var(--bg-primary)]">
 
-    <header class="header fixed top-0 left-0 w-full z-50 border-b border-white/10">
+    <header class="header fixed top-0 left-0 w-full z-50">
         <div class="container mx-auto flex justify-between items-center p-3">
             <!-- Logo -->
             <a href="#" data-target-section-index="0" class="nav-logo">
@@ -237,7 +251,7 @@
             <nav class="hidden md:flex items-center space-x-10 text-sm font-medium">
                 <a href="#" data-target-section-index="1" class="nav-link">Use Cases</a>
                 <a href="#" class="nav-link">Features</a>
-                <a href="#" class="nav-link">Pricing</a>
+                <a href="#" data-target-section-index="2" class="nav-link">Pricing</a>
                 <a href="#" class="nav-link">Blog</a>
             </nav>
 
@@ -259,9 +273,9 @@
          <nav class="flex flex-col items-center space-y-8 text-xl font-medium">
             <a href="#" data-target-section-index="1" class="nav-link">Use Cases</a>
             <a href="#" class="nav-link">Features</a>
-            <a href="#" class="nav-link">Pricing</a>
+            <a href="#" data-target-section-index="2" class="nav-link">Pricing</a>
             <a href="#" class="nav-link">Blog</a>
-            <a href="#" class="main-cta-button cta-with-blob-effect mt-8">
+            <a href="#" data-target-section-index="3" class="main-cta-button cta-with-blob-effect mt-8">
                 Start
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             </a>
@@ -279,14 +293,14 @@
             <!-- SECTION 1: HERO         -->
             <!-- ======================= -->
             <section id="hero-section" class="content-section text-center is-visible">
-                <div class="z-10 flex flex-col items-center">
-                    <h1 class="text-6xl md:text-9xl font-extrabold text-white tracking-wider">NEURONIUM</h1>
-                    <h2 class="text-3xl md:text-6xl font-bold mt-2 leading-tight">
+                <div class="content-body">
+                    <h1 class="text-4xl sm:text-5xl md:text-9xl font-extrabold text-white tracking-wider">NEURONIUM</h1>
+                    <h2 class="text-xl sm:text-2xl md:text-6xl font-bold mt-2 leading-tight">
                         <span style="color: var(--brand-purple);">AI</span> SUPER <span style="color: var(--brand-orange);">AGENT</span>
                     </h2>
                     <a href="#" class="main-cta-button cta-with-blob-effect mt-16">
                         Start
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                     </a>
                 </div>
 
@@ -300,52 +314,169 @@
             <!-- SECTION 2: USE CASES    -->
             <!-- ======================= -->
             <section id="about-section" class="content-section">
-                <div class="text-center max-w-7xl mx-auto">
-                    <h2 class="text-4xl md:text-6xl font-bold mb-4">
-                        Democratizing <span style="color: var(--brand-purple);">AI</span>
-                    </h2>
-                    <p class="text-lg md:text-xl text-[var(--text-secondary)] mb-12">
-                        Artificial Intelligence for Everyone.
-                    </p>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Card 1: Personal -->
-                        <div class="rounded-2xl border p-8 shadow-lg text-left flex flex-col" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
-                            <h3 class="text-3xl font-bold mb-2 flex items-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                Personal
-                            </h3>
-                            <p class="text-[var(--text-secondary)] mb-6 flex-grow">
-                                Your personal assistant for studying, creativity, and daily tasks. Optimize your life with AI.
-                            </p>
-                            <a href="#" class="main-cta-button cta-with-blob-effect self-end !text-base !py-3 !px-6">
-                                Learn more
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                            </a>
-                        </div>
-                        
-                        <!-- Card 2: Business -->
-                        <div class="rounded-2xl border p-8 shadow-lg text-left flex flex-col" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
-                            <h3 class="text-3xl font-bold mb-2 flex items-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                                Business
-                            </h3>
-                            <p class="text-[var(--text-secondary)] mb-6 flex-grow">
-                                Scalable solutions for process automation, data analysis, and boosting your company's competitive edge.
-                            </p>
-                            <a href="#" class="main-cta-button cta-with-blob-effect self-end !text-base !py-3 !px-6">
-                                Learn more
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                            </a>
+                <div class="content-body">
+                    <div class="text-center max-w-7xl mx-auto">
+                        <h2 class="text-4xl md:text-6xl font-bold mb-4">
+                            Democratizing <span style="color: var(--brand-purple);">AI</span>
+                        </h2>
+                        <p class="text-lg md:text-xl text-[var(--text-secondary)] mb-12">
+                            Artificial Intelligence for Everyone
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Card 1: Personal -->
+                            <div class="rounded-2xl border p-8 shadow-lg text-left flex flex-col" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <h3 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    Personal
+                                </h3>
+                                <p class="text-[var(--text-secondary)] mb-6 flex-grow">
+                                    Your personal assistant for studying, creativity, and daily tasks. Optimize your life with AI
+                                </p>
+                                <a href="#" class="main-cta-button cta-with-blob-effect self-end !text-base !py-3 !px-6">
+                                    Learn more
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </a>
+                            </div>
+                            
+                            <!-- Card 2: Business -->
+                            <div class="rounded-2xl border p-8 shadow-lg text-left flex flex-col" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <h3 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                    Business
+                                </h3>
+                                <p class="text-[var(--text-secondary)] mb-6 flex-grow">
+                                    Scalable solutions for process automation, data analysis, and boosting your company's competitive edge
+                                </p>
+                                <a href="#" class="main-cta-button cta-with-blob-effect self-end !text-base !py-3 !px-6">
+                                    Learn more
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </section>
+            
+            <!-- ======================= -->
+            <!-- SECTION 3: PRICING      -->
+            <!-- ======================= -->
+            <section id="pricing-section" class="content-section">
+                 <div class="content-body">
+                    <div class="w-full max-w-screen-xl mx-auto text-center">
+                        <h2 class="text-4xl md:text-6xl font-bold mb-4">
+                            Flexible <span style="color: var(--brand-orange);">Pricing</span>
+                        </h2>
+                        <p class="text-lg md:text-xl text-[var(--text-secondary)] mb-12">
+                            Choose a plan that scales with your needs
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                            <!-- Personal Plan -->
+                            <div class="rounded-2xl border p-6 shadow-lg text-center flex flex-col transition-transform hover:scale-105" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <div class="mx-auto mb-4 text-[var(--brand-purple)]"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                                <h3 class="text-2xl font-bold mb-2">Personal</h3>
+                                <div class="mb-6 flex-grow flex flex-col justify-center items-center">
+                                    <span class="text-4xl font-extrabold text-white">Free</span>
+                                </div>
+                                <a href="#" class="main-cta-button cta-with-blob-effect w-full !text-base !py-3 !px-6">Choose Plan <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+                
+                            <!-- Basic Plan -->
+                            <div class="rounded-2xl border p-6 shadow-lg text-center flex flex-col transition-transform hover:scale-105" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <div class="mx-auto mb-4 text-[var(--brand-purple)]"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg></div>
+                                <h3 class="text-2xl font-bold mb-2">Basic</h3>
+                                 <div class="mb-6 flex-grow flex flex-col justify-center items-center">
+                                    <span class="text-4xl font-extrabold text-white">$20</span>
+                                    <span class="text-sm text-[var(--text-secondary)]">/ 1GB per month</span>
+                                </div>
+                                <a href="#" class="main-cta-button cta-with-blob-effect w-full !text-base !py-3 !px-6">Choose Plan <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+                
+                            <!-- Plus Plan (Featured) -->
+                            <div class="relative rounded-2xl border-2 p-6 shadow-lg text-center flex flex-col" style="background-color: var(--bg-primary); border-color: var(--brand-purple);">
+                                <div class="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-[var(--brand-purple)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Popular</div>
+                                <div class="mx-auto mb-4 text-[var(--brand-purple)]"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div>
+                                <h3 class="text-2xl font-bold mb-2">Plus</h3>
+                                <div class="mb-6 flex-grow flex flex-col justify-center items-center">
+                                    <span class="text-4xl font-extrabold text-white">$50</span>
+                                    <span class="text-sm text-[var(--text-secondary)]">/ 10GB per month</span>
+                                </div>
+                                <a href="#" class="main-cta-button cta-with-blob-effect w-full !text-base !py-3 !px-6">Choose Plan <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+                
+                            <!-- Business Plan -->
+                            <div class="rounded-2xl border p-6 shadow-lg text-center flex flex-col transition-transform hover:scale-105" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <div class="mx-auto mb-4 text-[var(--brand-purple)]"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
+                                <h3 class="text-2xl font-bold mb-2">Business</h3>
+                                <div class="mb-6 flex-grow flex flex-col justify-center items-center">
+                                    <span class="text-4xl font-extrabold text-white">$250</span>
+                                    <span class="text-sm text-[var(--text-secondary)]">/ 100GB per month</span>
+                                </div>
+                                <a href="#" class="main-cta-button cta-with-blob-effect w-full !text-base !py-3 !px-6">Choose Plan <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+                
+                            <!-- Enterprise Plan -->
+                            <div class="rounded-2xl border p-6 shadow-lg text-center flex flex-col transition-transform hover:scale-105" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <div class="mx-auto mb-4 text-[var(--brand-purple)]"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+                                <h3 class="text-2xl font-bold mb-2">Enterprise</h3>
+                                <div class="mb-6 flex-grow flex flex-col justify-center items-center">
+                                    <span class="text-4xl font-extrabold text-white">$1000</span>
+                                    <span class="text-sm text-[var(--text-secondary)]">/ 1TB per month</span>
+                                </div>
+                                <a href="#" class="main-cta-button cta-with-blob-effect w-full !text-base !py-3 !px-6">Choose Plan <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ======================= -->
+            <!-- SECTION 4: FOOTER CTA   -->
+            <!-- ======================= -->
+            <section id="footer-section" class="content-section text-center">
+                <div class="content-body">
+                    <h2 class="text-4xl md:text-6xl font-bold mb-12 max-w-4xl leading-tight">
+                        Turn your <span style="color: var(--brand-orange);">data</span><br> into working <span style="color: var(--brand-purple);">intelligence</span>
+                    </h2>
+                    <a href="#" class="main-cta-button cta-with-blob-effect">
+                        Start
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </a>
+                </div>
+
+                <!-- Footer Links -->
+                <footer class="w-full bg-[var(--bg-primary)] text-center py-2 absolute bottom-0 left-0">
+                    <div class="container relative mx-auto flex flex-col sm:flex-row justify-center sm:justify-start items-center p-3 gap-4">
+                        <!-- Logo -->
+                        <a href="#" data-target-section-index="0" class="nav-logo">
+                            <span class="text-2xl font-bold text-white hover:opacity-80 transition-opacity" style="font-family: Arial, sans-serif;">Neuronium</span>
+                        </a>
+            
+                        <!-- Legal Links -->
+                        <div class="sm:absolute sm:left-1/2 sm:-translate-x-1/2 flex items-center gap-x-6 text-sm text-[var(--text-secondary)]">
+                            <a href="#" class="hover:text-[var(--text-primary)] transition-colors">Terms of use</a>
+                            <a href="#" class="hover:text-[var(--text-primary)] transition-colors">Privacy policy</a>
+                        </div>
+                    </div>
+                </footer>
             </section>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // THE FIX: DYNAMICALLY SET HEADER HEIGHT
+            const header = document.querySelector('.header');
+            function setHeaderOffset() {
+              const h = header.getBoundingClientRect().height;
+              document.documentElement.style.setProperty('--header-h', `${h}px`);
+            }
+            setHeaderOffset();
+            // Recalculate on resize or viewport change for robustness
+            window.addEventListener('resize', setHeaderOffset);
+            if(window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setHeaderOffset);
+            }
+
             if ('scrollRestoration' in history) {
                 history.scrollRestoration = 'manual';
             }
@@ -355,7 +486,7 @@
             const totalSections = sections.length;
             let currentSectionIndex = 0;
             let isTransitioning = false;
-            const transitionDuration = 1200;
+            const transitionDuration = 800; 
             
             // Blobs
             const blob1 = document.getElementById('blob1');
@@ -380,15 +511,19 @@
                     sections[currentSectionIndex].classList.remove('is-visible');
                 }
 
-                if (sections[newIndex]) {
-                    sections[newIndex].classList.add('is-visible');
+                const newSection = sections[newIndex];
+                if (newSection) {
+                    newSection.classList.add('is-visible');
                      requestAnimationFrame(() => {
-                        sections[newIndex].scrollTop = 0;
-                     });
+                         newSection.scrollTop = 0;
+                       });
                 }
                 
                 currentSectionIndex = newIndex;
-                window.scrollTo({ top: newIndex * window.innerHeight, behavior: 'auto' });
+                
+                // THE FIX: Use dynamic viewport height for scrolling
+                const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                window.scrollTo({ top: newIndex * vh, behavior: 'auto' });
 
                 setTimeout(() => {
                     isTransitioning = false;
